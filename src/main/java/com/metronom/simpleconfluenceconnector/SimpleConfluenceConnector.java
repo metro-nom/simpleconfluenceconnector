@@ -16,7 +16,13 @@ import com.metronom.simpleconfluenceconnector.model.*;
 
 public class SimpleConfluenceConnector {
 
+    private static final String CREATE_AS_CHILD_JSON_PATTERN =
+        "{\"type\":\"page\",\"title\":\"%s\",\"ancestors\":[{\"id\":%d}],\"space\":{\"key\":\"%s\"},"
+        + "\"body\":{\"storage\":{\"value\":\"<p>This is a new page.</p>\",\"representation\":\"storage\"}}}";
 
+    private static final String CREATE_JSON_PATTERN =
+        "{\"type\":\"page\",\"title\":\"%s\",\"space\":{\"key\":\"%s\"},\"body\":{\"storage\":"
+        + "{\"value\":\"<p>This is a new page.</p>\",\"representation\":\"storage\"}}}";
 
     private static final Gson GSON = new Gson();
 
@@ -38,6 +44,30 @@ public class SimpleConfluenceConnector {
         this.user = user;
         this.password = password;
         this.base = base;
+    }
+
+    public int createPage(final String space, final String title) throws IOException {
+        final HttpURLConnection connection =
+            this.getConnection(String.format("%srest/api/content/", this.base.get()));
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "application/json");
+        try (Writer writer = new OutputStreamWriter(connection.getOutputStream())) {
+            writer.write(String.format(SimpleConfluenceConnector.CREATE_JSON_PATTERN, title, space));
+        }
+        return connection.getResponseCode();
+    }
+
+    public int createPageAsChild(final String space, final String title, final int idOfParent) throws IOException {
+        final HttpURLConnection connection =
+            this.getConnection(String.format("%srest/api/content/", this.base.get()));
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "application/json");
+        try (Writer writer = new OutputStreamWriter(connection.getOutputStream())) {
+            writer.write(
+                String.format(SimpleConfluenceConnector.CREATE_AS_CHILD_JSON_PATTERN, title, idOfParent, space)
+            );
+        }
+        return connection.getResponseCode();
     }
 
     private HttpURLConnection getConnection(final String url) throws MalformedURLException, IOException {
