@@ -65,6 +65,11 @@ public class SimpleConfluenceConnector {
                     space
                 )
             );
+        final int code = connection.getResponseCode();
+        if (code != 200) {
+            System.err.println(String.format("Server returned code %d!", code));
+            return Collections.emptyList();
+        }
         try (final Reader reader = new InputStreamReader(connection.getInputStream())) {
             final ConfluencePageJSON pageResult =
                 SimpleConfluenceConnector.GSON.fromJson(reader, ConfluencePageJSON.class);
