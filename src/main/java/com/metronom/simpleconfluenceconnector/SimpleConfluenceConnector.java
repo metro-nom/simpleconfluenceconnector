@@ -133,7 +133,7 @@ public class SimpleConfluenceConnector {
                     page.getId(),
                     page.getTitle(),
                     page.getSpace(),
-                    StorageTransformer.getStorageFormat(page.getDocument()),
+                    StorageTransformer.getStorageFormat(page.getDocument()).replaceAll("\\\"", "\\\\\""),
                     page.getVersion()
                 )
             );
