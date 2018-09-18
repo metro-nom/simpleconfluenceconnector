@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.function.*;
+import java.util.logging.*;
 
 import javax.xml.parsers.*;
 import javax.xml.transform.*;
@@ -15,6 +16,8 @@ import com.google.gson.*;
 import com.metronom.simpleconfluenceconnector.model.*;
 
 public class SimpleConfluenceConnector {
+
+    private static final Logger LOG = Logger.getLogger(SimpleConfluenceConnector.class.getName());
 
     private static final String CREATE_AS_CHILD_JSON_PATTERN =
         "{\"type\":\"page\",\"title\":\"%s\",\"ancestors\":[{\"id\":%d}],\"space\":{\"key\":\"%s\"},"
@@ -97,14 +100,17 @@ public class SimpleConfluenceConnector {
             );
         final int code = connection.getResponseCode();
         if (code != 200) {
-            System.err.println(String.format("Server returned code %d!", code));
+            SimpleConfluenceConnector.LOG.log(Level.SEVERE, String.format("Server returned code %d!", code));
             return Collections.emptyList();
         }
         try (final Reader reader = new InputStreamReader(connection.getInputStream())) {
             final ConfluencePageJSON pageResult =
                 SimpleConfluenceConnector.GSON.fromJson(reader, ConfluencePageJSON.class);
             for (final ConfluencePageResult page : pageResult.getResults()) {
-                final Document document = StorageTransformer.parseDocumentFromStorage(page.getStorage());
+                final String storage = page.getStorage();
+                SimpleConfluenceConnector.LOG.log(Level.INFO, "Received the following storage text:");
+                SimpleConfluenceConnector.LOG.log(Level.INFO, storage);
+                final Document document = StorageTransformer.parseDocumentFromStorage(storage);
                 result.add(
                     new ConfluencePageInformation(
                         page.getId(),
